@@ -1,0 +1,52 @@
+       IDENTIFICATION                  DIVISION.                        00010000
+       PROGRAM-ID.                     F2400DB1.                        00020000
+      *================================================================ 00030000
+       ENVIRONMENT                     DIVISION.                        00040000
+      *================================================================ 00050000
+                                                                        00060000
+      *================================================================ 00070000
+       DATA                            DIVISION.                        00080000
+      *================================================================ 00090000
+       WORKING-STORAGE                 SECTION.                         00100000
+                                                                        00110000
+           EXEC SQL                                                     00110100
+            INCLUDE  SQLCA                                              00110200
+           END-EXEC.                                                    00110300
+                                                                        00110400
+           EXEC SQL                                                     00110500
+            INCLUDE  BOOKFUNC                                           00110600
+           END-EXEC.                                                    00110700
+       01 WRK-ID         PIC  9(005)       VALUE ZEROS.                 00114003
+       01 WRK-SQLCODE    PIC -999          VALUE ZEROS.                 00115003
+       01 WRK-NULO       PIC S9(004) COMP  VALUE ZEROS.                 00116003
+                                                                        00117000
+       PROCEDURE                       DIVISION.                        00120000
+      *================================================================ 00130000
+           ACCEPT WRK-ID.                                               00140000
+            MOVE WRK-ID TO DB2-IDFUNC.                                  00141000
+           EXEC SQL                                                     00144000
+              SELECT IDFUNC,NOMEFUNC,DEPTOFUNC,SALFUNC,FILHOSFUNC,      00145001
+                     ADMISFUNC                                          00145101
+               INTO  :DB2-IDFUNC,                                       00146001
+                     :DB2-NOMEFUNC,                                     00147001
+                     :DB2-DEPTOFUNC,                                    00147101
+                     :DB2-SALFUNC,                                      00147201
+                     :DB2-FILHOSFUNC INDICATOR :WRK-NULO,               00147303
+                     :DB2-ADMISFUNC                                     00147401
+               FROM  IBMUSER.FUNC                                       00148000
+               WHERE IDFUNC =:DB2-IDFUNC                                00149000
+           END-EXEC.                                                    00149100
+                                                                        00149202
+           IF WRK-NULO EQUAL -1                                         00149303
+             MOVE 0 TO DB2-FILHOSFUNC                                   00149403
+           END-IF.                                                      00149503
+                                                                        00149603
+           IF SQLCODE EQUAL 0                                           00149700
+              DISPLAY 'NOME FUNCIONARIO ' DB2-NOMEFUNC                  00149800
+              DISPLAY 'SALARIO FUNC     ' DB2-SALFUNC                   00149903
+              DISPLAY 'FILHOS  FUNC     ' DB2-FILHOSFUNC                00150003
+           END-IF.                                                      00150103
+           IF SQLCODE EQUAL 100                                         00150203
+              DISPLAY 'NAO ENCONTRADO'                                  00150303
+           END-IF.                                                      00151000
+           STOP RUN.                                                    00160000

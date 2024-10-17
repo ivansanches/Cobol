@@ -1,0 +1,59 @@
+       IDENTIFICATION                  DIVISION.                        00010000
+       PROGRAM-ID.                     F2400DB8.                        00020000
+      *================================================================ 00030000
+       ENVIRONMENT                     DIVISION.                        00040000
+      *================================================================ 00050000
+                                                                        00060000
+      *================================================================ 00070000
+       DATA                            DIVISION.                        00080000
+      *================================================================ 00090000
+       WORKING-STORAGE                 SECTION.                         00100000
+                                                                        00110000
+           EXEC SQL                                                     00110100
+            INCLUDE  SQLCA                                              00110200
+           END-EXEC.                                                    00110300
+                                                                        00110400
+           EXEC SQL                                                     00110500
+            INCLUDE  BOOKFUNC                                           00110600
+           END-EXEC.                                                    00110700
+       01 WRK-ID         PIC  9(005)       VALUE ZEROS.                 00110800
+       01 WRK-SQLCODE    PIC -999          VALUE ZEROS.                 00110900
+       01 WRK-NULO       PIC S9(004) COMP  VALUE ZEROS.                 00111000
+                                                                        00112000
+       PROCEDURE                       DIVISION.                        00113000
+       0000-PRINCIPAL                  SECTION.                         00113100
+           PERFORM 0100-INICIALIZAR.                                    00113200
+           PERFORM 0200-PROCESSAR.                                      00113300
+           PERFORM 0300-FINALIZAR.                                      00113400
+           GOBACK.                                                      00113500
+                                                                        00113600
+       0100-INICIALIZAR                SECTION.                         00113700
+           ACCEPT WRK-ID.                                               00113800
+           MOVE WRK-ID TO DB2-IDFUNC.                                   00113900
+                                                                        00114000
+       0200-PROCESSAR                  SECTION.                         00114100
+           EXEC SQL                                                     00114200
+              DELETE FROM F2400.FUNC                                    00114400
+              WHERE IDFUNC =:DB2-IDFUNC                                 00114500
+           END-EXEC.                                                    00115200
+                                                                        00115400
+               MOVE SQLCODE TO WRK-SQLCODE                              00115500
+               DISPLAY SQLCODE.                                         00115600
+                                                                        00115700
+           IF (SQLCODE NOT EQUAL 0 AND +100)OR                          00115800
+              (SQLWARN0 EQUAL 'W')                                      00115900
+               MOVE SQLCODE            TO WRK-SQLCODE                   00116000
+               MOVE "F2401.FUNC"       TO WRK-TABELA-DB2                00116100
+               MOVE WRK-PROG-NOME      TO WRK-PROGRAMA-DB2              00116200
+               MOVE WRK-SQLCODE        TO WRK-SQLCODE-DB2               00116300
+               PERFORM 9997-TRATA-DB2                                   00116500
+           END-IF.                                                      00116600
+                                                                        00116700
+           IF SQLCODE EQUAL 0                                           00116800
+              DISPLAY 'EXCLUIDO       '                                 00116900
+           END-IF.                                                      00117000
+                                                                        00117100
+                                                                        00117500
+       0300-FINALIZAR                  SECTION.                         00117600
+      *================================================================ 00117700
+            DISPLAY "ESTATISTICA... ".                                  00117800

@@ -1,0 +1,97 @@
+       IDENTIFICATION                  DIVISION.                        00010000
+       PROGRAM-ID.                     F2400DB2.                        00020000
+      *================================================================ 00030000
+      *-- OBJETIVO :LEITURA DE TODOS OS REGISTROS DA TABELA FUNC        00031000
+      *================================================================ 00031100
+                                                                        00032000
+       ENVIRONMENT                     DIVISION.                        00040000
+      *================================================================ 00050000
+                                                                        00060000
+      *================================================================ 00070000
+       DATA                            DIVISION.                        00080000
+      *================================================================ 00090000
+       WORKING-STORAGE                 SECTION.                         00100000
+                                                                        00110000
+           EXEC SQL                                                     00110100
+            INCLUDE  SQLCA                                              00110200
+           END-EXEC.                                                    00110300
+                                                                        00110400
+           EXEC SQL                                                     00110500
+            INCLUDE  BOOKFUNC                                           00110600
+           END-EXEC.                                                    00110700
+                                                                        00110800
+           EXEC SQL                                                     00110900
+             DECLARE DADOS CURSOR   FOR                                 00111000
+             SELECT IDFUNC,NOMEFUNC,DEPTOFUNC,SALFUNC,FILHOSFUNC,       00111100
+                    ADMISFUNC                                           00111200
+                    FROM IBMUSER.FUNC                                   00111300
+           END-EXEC.                                                    00111400
+                                                                        00111500
+                                                                        00111600
+       01 WRK-SQLCODE    PIC -999          VALUE ZEROS.                 00111800
+       01 WRK-NULO       PIC S9(004) COMP  VALUE ZEROS.                 00111900
+                                                                        00112000
+       PROCEDURE                       DIVISION.                        00113000
+       0000-PRINCIPAL                  SECTION.                         00113100
+           PERFORM 0100-INICIALIZAR.                                    00113200
+           PERFORM 0200-PROCESSAR UNTIL SQLCODE = 100.                  00113300
+           PERFORM 0300-FINALIZAR.                                      00113400
+           GOBACK.                                                      00113500
+                                                                        00113600
+       0100-INICIALIZAR                SECTION.                         00113700
+                                                                        00113800
+           EXEC  SQL                                                    00113900
+             OPEN DADOS                                                 00114000
+           END-EXEC.                                                    00114100
+                                                                        00114201
+           IF (SQLCODE                 NOT EQUAL ZEROS) OR              00114301
+              (SQLWARN                 EQUAL 'W'      )                 00114401
+                                                                        00114501
+                                                                        00114601
+                                                                        00114701
+                                                                        00114801
+            IF SQLCODE NOT EQUAL 0 AND NOT EQUAL 100                    00114900
+                MOVE SQLCODE TO WRK-SQLCODE                             00115000
+                DISPLAY "ERRO " WRK-SQLCODE                             00115100
+                GOBACK                                                  00115200
+            END-IF.                                                     00115300
+                                                                        00115400
+       0200-PROCESSAR                  SECTION.                         00115500
+           EXEC SQL                                                     00115600
+             FETCH DADOS                                                00115700
+               INTO  :DB2-IDFUNC,                                       00115800
+                     :DB2-NOMEFUNC,                                     00115900
+                     :DB2-DEPTOFUNC,                                    00116000
+                     :DB2-SALFUNC,                                      00116100
+                     :DB2-FILHOSFUNC INDICATOR :WRK-NULO,               00116200
+                     :DB2-ADMISFUNC                                     00116300
+                                                                        00116400
+           END-EXEC.                                                    00116500
+                                                                        00116601
+           IF WRK-NULO EQUAL -1                                         00116701
+             MOVE 0 TO DB2-FILHOSFUNC                                   00116801
+           END-IF.                                                      00116901
+                                                                        00117001
+           IF (SQLCODE                 NOT EQUAL ZEROS AND +100) OR     00117101
+              (SQLWARN0                EQUAL 'W')                       00117201
+                                                                        00117301
+           END-IF.                                                      00117401
+                                                                        00117500
+                                                                        00117700
+           IF SQLCODE EQUAL 0                                           00117800
+              DISPLAY 'NOME FUNCIONARIO ' DB2-NOMEFUNC                  00117900
+              DISPLAY 'SALARIO FUNC     ' DB2-SALFUNC                   00118000
+              DISPLAY 'FILHOS  FUNC     ' DB2-FILHOSFUNC                00118100
+              DISPLAY '-----------------------------------'             00118200
+           END-IF.                                                      00118300
+           IF SQLCODE EQUAL 100                                         00118400
+              DISPLAY ' FIM DA TABELA'                                  00118500
+           END-IF.                                                      00118600
+                                                                        00118700
+       0300-FINALIZAR                  SECTION.                         00118800
+      *================================================================ 00118900
+            EXEC SQL                                                    00119000
+              CLOSE DADOS                                               00119100
+            END-EXEC.                                                   00119200
+                                                                        00119300
+            DISPLAY "ESTATISTICA... ".                                  00120000
